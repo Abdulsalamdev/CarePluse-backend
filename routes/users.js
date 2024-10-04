@@ -5,12 +5,38 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bycrypt = require("bcryptjs");
 const dotenv = require("dotenv");
+const { adminCheck } = require("../middleware/auth");
+const jwt = require("jsonwebtoken");
 dotenv.config();
 
-const { EMAIL, EMAIL_PASSWORD } = process.env;
+const {
+  EMAIL,
+  EMAIL_PASSWORD,
+  ACCESS_TOKEN,
+  ACCESS_TOKEN_EXPIRES_IN,
+  REFRESH_TOKEN,
+  REFRESH_TOKEN_EXPIRES_IN,
+} = process.env;
 
+//generate OTP
 const generateOtp = () => {
   return crypto.randomInt(100000, 999999).toString();
+};
+
+//generate ACCESS TOKEN
+const generateAccessToken = (user) => {
+  return jwt.sign({ id: user._id }, ACCESS_TOKEN, {
+    subject: "ACCESS API",
+    expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+  });
+};
+
+//generate REFRESH TOKEN
+const generateRefreshToken = (user) => {
+  return jwt.sign({ id: user._id }, REFRESH_TOKEN, {
+    subject: "REFRESH API",
+    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+  });
 };
 
 //creating sign-up
@@ -42,96 +68,6 @@ router.post("/sign-up", async (req, res) => {
       to: email,
       subject: "Password Reset Otp",
       text: `Your OTP is ${otp}. It is valid for 15 minutes`,
-      //       html: `<!DOCTYPE html>
-      // <html lang="en">
-
-      // <head>
-      //     <meta charset="UTF-8">
-      //     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      //     <title>Your OTP Code</title>
-      //     <style>
-      //         body {
-      //             font-family: Arial, sans-serif;
-      //             background-color: #f6f6f6;
-      //             margin: 0;
-      //             padding: 0;
-      //             color: #333;
-      //         }
-
-      //         .container {
-      //             max-width: 600px;
-      //             margin: 50px auto;
-      //             background-color: #ffffff;
-      //             border-radius: 8px;
-      //             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      //             overflow: hidden;
-      //         }
-
-      //         .header {
-      //             background-color: #007bff;
-      //             color: #ffffff;
-      //             padding: 20px;
-      //             text-align: center;
-      //         }
-
-      //         .header h1 {
-      //             margin: 0;
-      //             font-size: 24px;
-      //         }
-
-      //         .content {
-      //             padding: 30px;
-      //             text-align: center;
-      //         }
-
-      //         .content p {
-      //             font-size: 16px;
-      //             margin-bottom: 20px;
-      //         }
-
-      //         .otp {
-      //             font-size: 30px;
-      //             font-weight: bold;
-      //             background-color: #f8f8f8;
-      //             padding: 10px;
-      //             border-radius: 5px;
-      //             display: inline-block;
-      //             margin-bottom: 30px;
-      //         }
-
-      //         .footer {
-      //             background-color: #f6f6f6;
-      //             color: #777777;
-      //             padding: 20px;
-      //             text-align: center;
-      //             font-size: 14px;
-      //         }
-
-      //         .footer p {
-      //             margin: 0;
-      //         }
-      //     </style>
-      // </head>
-
-      // <body>
-      //     <div class="container">
-      //         <div class="header">
-      //             <h1>OTP Verification</h1>
-      //         </div>
-      //         <div class="content">
-      //             <p>Hello,</p>
-      //             <p>Thank you for using our service. Your One-Time Password (OTP) for verification is:</p>
-      //             <div class="otp">${otp}</div>
-      //             <p>Please enter this code to complete your verification. This OTP is valid for 10 minutes.</p>
-      //         </div>
-      //         <div class="footer">
-      //             <p>If you did not request this code, please ignore this email.</p>
-      //         </div>
-      //     </div>
-      // </body>
-
-      // </html>
-      // `,
       html: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -224,7 +160,7 @@ router.post("/sign-up", async (req, res) => {
       <p>Hello,</p>
       <p>Thank you for registering with us. Please use the OTP code below to verify your email address:</p>
       <div class="otp-code">${otp}</div>
-      <p>This OTP will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+      <p>This OTP will expire in 15 minutes. If you did not request this, please ignore this email.</p>
      
     </div>
     <div class="email-footer">
@@ -271,11 +207,26 @@ router.post("/login", async (req, res) => {
     const verified = await bycrypt.compare(phone, user.phone);
     if (!verified) return res.status(401).send({ massage: "Invalid User" });
 
-    res.status(200).send({
-      massage: "User successfully logged in",
-      id: user._id,
-      email,
-    });
+    const accessToken = generateAccessToken(user);
+    // const refreshToken = generateRefreshToken(user);
+
+    if (user.isAdmin == true) {
+      res.status(200).send({
+        massage: "Admin successfully logged in",
+        id: user._id,
+        email,
+        isUser: user.isAdmin,
+        token: { accessToken },
+      });
+    } else {
+      res.status(200).send({
+        massage: "User successfully logged in",
+        id: user._id,
+        email,
+        isUser: user.isAdmin,
+        token: { accessToken: refreshToken },
+      });
+    }
   } catch (error) {
     return res.status(500).send({ message: error.message });
   }
@@ -308,10 +259,4 @@ router.post("/verify-email", async (req, res) => {
   }
 });
 
-router.post("/patient-form", async (req, res) => {
-  try {
-  } catch (error) {
-    res.status(500).send({ message: error.message });
-  }
-});
 module.exports = router;

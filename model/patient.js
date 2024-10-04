@@ -3,6 +3,7 @@ const Joi = require("joi");
 
 const patientSchema = new mongoose.Schema(
   {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     full_name: {
       type: String,
       required: true,
@@ -121,6 +122,8 @@ const patientSchema = new mongoose.Schema(
 
 const patientAppointmentSchema = new mongoose.Schema(
   {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
     doctor: {
       type: String,
       required: true,
@@ -131,7 +134,6 @@ const patientAppointmentSchema = new mongoose.Schema(
     },
     additional_reason: {
       type: String,
-      required: true,
     },
     appointment_date: {
       type: String,
@@ -153,7 +155,7 @@ const AppointmentValidator = (appointment) => {
   const schema = Joi.object({
     doctor: Joi.string().required(),
     appointment_reason: Joi.string().required(),
-    additional_reason: Joi.string().required(),
+    additional_reason: Joi.string(),
     appointment_date: Joi.string().required(),
   });
   return schema.validate(appointment);
@@ -201,4 +203,9 @@ const PatientValidator = (patient) => {
   });
   return schema.validate(patient);
 };
-module.exports = { Patient, PatientValidator, AppointmentValidator };
+module.exports = {
+  Patient,
+  PatientValidator,
+  AppointmentValidator,
+  PatientAppointment,
+};
