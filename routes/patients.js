@@ -6,6 +6,7 @@ const {
   PatientAppointment,
 } = require("../model/patient");
 const router = express.Router();
+const path = require("path");
 const multer = require("multer");
 const dotenv = require("dotenv");
 const { Auth } = require("../middleware/auth");
@@ -20,7 +21,24 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + "-" + file.originalname); // Rename the file
   },
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    // Accept only certain file types (e.g., PDF and images)
+    const filetypes = /jpeg|jpg|png|gif|pdf/;
+    const extname = filetypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (extname && mimetype) {
+      return cb(null, true);
+    } else {
+      cb(new Error("Error: File type not allowed!"));
+    }
+  },
+});
 
 router.post("/patient-form/", Auth, upload.single("file"), async (req, res) => {
   try {
@@ -89,6 +107,7 @@ router.post("/appointment-form", Auth, async (req, res) => {
 
     const appointmentForm = new PatientAppointment({
       userId: req.user.userId,
+      patientId: req.body.patientId,
       doctor: req.body.doctor,
       appointment_reason: req.body.appointment_reason,
       additional_reason: req.body.additional_reason,
@@ -103,6 +122,5 @@ router.post("/appointment-form", Auth, async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-
 
 module.exports = router;

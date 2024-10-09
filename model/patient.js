@@ -4,6 +4,10 @@ const Joi = require("joi");
 const patientSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    patientAppointment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PatientAppointment",
+    },
     full_name: {
       type: String,
       required: true,
@@ -123,7 +127,10 @@ const patientSchema = new mongoose.Schema(
 const patientAppointmentSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-
+    patientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
+    },
     doctor: {
       type: String,
       required: true,
@@ -138,6 +145,11 @@ const patientAppointmentSchema = new mongoose.Schema(
     appointment_date: {
       type: String,
       required: true,
+    },
+    appointment_status: {
+      type: String,
+      enum: ["Pending", "Schedule", "Cancle"],
+      default: "Pending",
     },
   },
   {
@@ -157,6 +169,7 @@ const AppointmentValidator = (appointment) => {
     appointment_reason: Joi.string().required(),
     additional_reason: Joi.string(),
     appointment_date: Joi.string().required(),
+    patientId: Joi.string(),
   });
   return schema.validate(appointment);
 };

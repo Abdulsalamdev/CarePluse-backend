@@ -8,6 +8,7 @@ const { PORT } = process.env;
 const userRoutes = require("./routes/users");
 const physicianRoutes = require("./routes/carePhysicians");
 const patientRoutes = require("./routes/patients");
+const adminDashboardRoutes = require("./routes/adminDashboard");
 
 mongoose
   .connect("mongodb://localhost:27017")
@@ -19,10 +20,11 @@ mongoose
   })
   .catch((err) => console.error("Could not connect to MongoDB server", err));
 
+mongoose.set("strictPopulate", false);
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use("/api", patientRoutes);
-
+app.use("/api", adminDashboardRoutes);
 app.use("/api", userRoutes);
 app.use("/api", physicianRoutes);

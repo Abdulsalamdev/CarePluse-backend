@@ -208,14 +208,13 @@ router.post("/login", async (req, res) => {
     if (!verified) return res.status(401).send({ massage: "Invalid User" });
 
     const accessToken = generateAccessToken(user);
-    // const refreshToken = generateRefreshToken(user);
 
     if (user.isAdmin == true) {
       res.status(200).send({
         massage: "Admin successfully logged in",
         id: user._id,
         email,
-        isUser: user.isAdmin,
+        isAdmin: user.isAdmin,
         token: { accessToken },
       });
     } else {
@@ -223,8 +222,8 @@ router.post("/login", async (req, res) => {
         massage: "User successfully logged in",
         id: user._id,
         email,
-        isUser: user.isAdmin,
-        token: { accessToken: refreshToken },
+        isAdmin: user.isAdmin,
+        token: { accessToken },
       });
     }
   } catch (error) {

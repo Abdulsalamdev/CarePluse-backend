@@ -14,7 +14,6 @@ const Auth = async (req, res, next) => {
     };
     next();
   } catch (error) {
-    console.error("Error checking admin status:", error);
     res.status(500).send({ message: "Internal server error" });
   }
 };
