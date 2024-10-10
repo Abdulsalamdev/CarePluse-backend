@@ -40,6 +40,7 @@ const upload = multer({
   },
 });
 
+// Creating patient Form
 router.post("/patient-form/", Auth, upload.single("file"), async (req, res) => {
   try {
     const { error } = PatientValidator(req.body);
@@ -55,7 +56,7 @@ router.post("/patient-form/", Auth, upload.single("file"), async (req, res) => {
     }
 
     const newPatientForm = new Patient({
-      userId: req.user.userId,
+      userId: req.body.userId,
       full_name: req.body.full_name,
       address: req.body.address,
       phone: req.body.phone,
@@ -100,13 +101,14 @@ router.post("/patient-form/", Auth, upload.single("file"), async (req, res) => {
   }
 });
 
+//  Creating Patient Appointment form
 router.post("/appointment-form", Auth, async (req, res) => {
   try {
     const { error } = AppointmentValidator(req.body);
     if (error) res.status(400).send({ message: error.details[0].message });
 
     const appointmentForm = new PatientAppointment({
-      userId: req.user.userId,
+      userId: req.body.userId,
       patientId: req.body.patientId,
       doctor: req.body.doctor,
       appointment_reason: req.body.appointment_reason,
@@ -115,9 +117,10 @@ router.post("/appointment-form", Auth, async (req, res) => {
     });
     await appointmentForm.save();
 
-    res
-      .status(201)
-      .send({ message: "Appointment created succcessfully", appointmentForm });
+    res.status(201).send({
+      message: "Your Appointment request has been succcessfully submitted",
+      appointmentForm,
+    });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }

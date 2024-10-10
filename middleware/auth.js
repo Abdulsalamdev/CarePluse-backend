@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const { ACCESS_TOKEN } = process.env;
 
+// a custom authentication middleware
 const Auth = async (req, res, next) => {
   const accessToken = req.headers.authorization;
   if (!accessToken)
@@ -10,11 +11,11 @@ const Auth = async (req, res, next) => {
   try {
     const decodedAccessToken = jwt.verify(accessToken, ACCESS_TOKEN);
     req.user = {
-      id: decodedAccessToken.userId,
+      _id: decodedAccessToken.userId,
     };
     next();
   } catch (error) {
-    res.status(500).send({ message: "Internal server error" });
+    res.status(401).send({ message: "Access token invalid or expired" });
   }
 };
 

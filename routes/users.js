@@ -5,7 +5,6 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bycrypt = require("bcryptjs");
 const dotenv = require("dotenv");
-const { adminCheck } = require("../middleware/auth");
 const jwt = require("jsonwebtoken");
 dotenv.config();
 
@@ -39,7 +38,7 @@ const generateRefreshToken = (user) => {
   });
 };
 
-//creating sign-up
+//creating new user account
 router.post("/sign-up", async (req, res) => {
   try {
     const { name, email, phone } = req.body;
@@ -198,7 +197,7 @@ router.post("/sign-up", async (req, res) => {
   }
 });
 
-//login
+// Creating user Login
 router.post("/login", async (req, res) => {
   try {
     const { email, phone } = req.body;
@@ -207,7 +206,7 @@ router.post("/login", async (req, res) => {
     const verified = await bycrypt.compare(phone, user.phone);
     if (!verified) return res.status(401).send({ massage: "Invalid User" });
 
-    const accessToken = generateAccessToken(user);
+    const accessToken = generateAccessToken(user._id);
 
     if (user.isAdmin == true) {
       res.status(200).send({
@@ -231,7 +230,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-//verifing Email
+// verifing User Emali
 router.post("/verify-email", async (req, res) => {
   try {
     const { email, otp } = req.body;

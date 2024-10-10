@@ -1,6 +1,7 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
 
+// creating a user schema object
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -41,8 +42,10 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// creating a user model
 const User = mongoose.model("User", userSchema);
 
+// A costuom user Validator
 const userValidator = (user) => {
   const Schema = Joi.object({
     name: Joi.string().min(5).max(50).required(),

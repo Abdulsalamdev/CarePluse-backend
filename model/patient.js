@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 
+// creating a patient schema
 const patientSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -124,6 +125,7 @@ const patientSchema = new mongoose.Schema(
   }
 );
 
+// creating a patient appointment schema
 const patientAppointmentSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -157,22 +159,49 @@ const patientAppointmentSchema = new mongoose.Schema(
   }
 );
 
+// creating a patient model
 const Patient = mongoose.model("Patient", patientSchema);
+
+// creating a patinet appointment model
 const PatientAppointment = mongoose.model(
   "PatientAppointment",
   patientAppointmentSchema
 );
 
+// a custom appointment validator
 const AppointmentValidator = (appointment) => {
   const schema = Joi.object({
     doctor: Joi.string().required(),
     appointment_reason: Joi.string().required(),
     additional_reason: Joi.string(),
     appointment_date: Joi.string().required(),
-    patientId: Joi.string(),
+    patientId: Joi.string().required(),
+    userId: Joi.string().required(),
   });
   return schema.validate(appointment);
 };
+
+// a custom appointment update validator
+const UpdateAppointmentValidator = (appointment) => {
+  const schema = Joi.object({
+    doctor: Joi.string().required(),
+    appointment_reason: Joi.string().required(),
+    appointment_status: Joi.string().required(),
+    appointment_date: Joi.string().required(),
+  });
+  return schema.validate(appointment);
+};
+
+//a custom appointment cancle validator
+const CancleAppointmentValidator = (appointment) => {
+  const schema = Joi.object({
+    appointment_reason: Joi.string().required(),
+    appointment_status: Joi.string().required(),
+  });
+  return schema.validate(appointment);
+};
+
+// a custom patient validator
 const PatientValidator = (patient) => {
   const schema = Joi.object({
     full_name: Joi.string().required(),
@@ -213,6 +242,7 @@ const PatientValidator = (patient) => {
     first_privacy: Joi.boolean(),
     second_privacy: Joi.boolean(),
     third_privacy: Joi.boolean(),
+    userId: Joi.string().required(),
   });
   return schema.validate(patient);
 };
@@ -221,4 +251,6 @@ module.exports = {
   PatientValidator,
   AppointmentValidator,
   PatientAppointment,
+  UpdateAppointmentValidator,
+  CancleAppointmentValidator,
 };
