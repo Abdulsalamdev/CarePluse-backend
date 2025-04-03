@@ -1,11 +1,8 @@
-const carePhysician = require("../model/carePhysician");
-const { PORT } = process.env;
-
+const physicianService = require("../services/physician.service")
 
 const getPhysicians =  async (req, res) => {
     try {
-      const physicians = await carePhysician.find().sort("name");
-  
+  const physicians = await physicianService.getPhysicians()
       res.status(200).send({ success: true, physicians });
     } catch (error) {
       res.status(500).send({ message: error.message });
@@ -13,24 +10,15 @@ const getPhysicians =  async (req, res) => {
   }
 
   const createPhysician = async (req, res) => {
+    const {file} = req.file
+
     try {
-      const filePath = req.file
-        ? `http://localhost:${PORT}/uploads/${req.file.filename}`
-        : null; // Create a full URL
+const physician = await physicianService.createPhysician(file)
   
-      if (!filePath) {
-        return res.status(400).send({ message: "File upload failed" });
-      }
-  
-      const newCarePhysic = new carePhysician({
-        fileName: req.file.filename,
-        filePath: filePath,
-      });
-  
-      await newCarePhysic.save();
+     
       res.status(201).send({
         message: "Physician created successfully",
-        data: { newCarePhysic },
+        data: { physician },
       });
     } catch (error) {
       res.status(500).send({ message: error.message });
