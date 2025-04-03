@@ -9,6 +9,11 @@ const userRoutes = require("./routes/users");
 const physicianRoutes = require("./routes/carePhysicians");
 const patientRoutes = require("./routes/patients");
 const adminDashboardRoutes = require("./routes/adminDashboard");
+const indexRoutes = require("./routes/index.route")
+
+app.use(cors());
+app.use(express.json());
+app.use("/", indexRoutes)
 
 mongoose
   .connect("mongodb://localhost:27017")
@@ -21,8 +26,7 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB server", err));
 
 mongoose.set("strictPopulate", false);
-app.use(cors());
-app.use(express.json());
+
 app.use("/uploads", express.static("uploads"));
 app.use("/", patientRoutes);
 app.use("/admin", adminDashboardRoutes);
